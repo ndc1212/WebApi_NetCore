@@ -52,7 +52,6 @@ namespace WebApi_NetCore
             app.UseOpenApi();
             app.UseSwaggerUi3();
 
-            //app.UseMvc();
         }
     }
 }

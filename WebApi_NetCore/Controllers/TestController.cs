@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Castle.Core.Logging;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using WebApi_NetCore.Shared;
 
@@ -13,18 +13,18 @@ namespace WebApi_NetCore.Controllers
     [Route("/api/[controller]")]
     public class TestController : ControllerBase
     {
-        private readonly CallApi _callApi;
+        //private readonly ICallApi _callApi;
         private static readonly string[] Summaries = new[]
         {
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
         };
 
-        private readonly ILogger<TestController> _logger;
+        //private readonly ILogger _logger;
 
-        public TestController(ILogger<TestController> logger, CallApi callApi)
+        public TestController()
         {
-            _logger = logger;
-            _callApi = callApi;
+            //_logger = logger;
+            //_callApi = callApi;
         }
 
         [HttpGet]
@@ -40,10 +40,11 @@ namespace WebApi_NetCore.Controllers
             .ToArray();
         }
         [HttpPost]
-        public JObject TestApi(string url,string data)
+        public JObject TestApi(string url, string data)
         {
             //var token = _callApi.GetToken("",)
-            var test = _callApi.CallApi1(url, data, "");
+            var _callApi = new CallApi();
+            var test = _callApi.CallApiGet1(url, "").Result;
 
             return test;
         }
