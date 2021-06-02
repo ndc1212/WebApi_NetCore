@@ -1,9 +1,11 @@
 ﻿using Castle.Core.Logging;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -11,6 +13,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
+
 using WebApi_NetCore.Model;
 
 namespace WebApi_NetCore.Shared
@@ -126,8 +130,8 @@ namespace WebApi_NetCore.Shared
                             acb.UserName = "01652992622";
                             acb.PassWord = "Cocaca@1";
                             acb.dse_sessionId = html.Substring(html.IndexOf("dse_sessionId="), 37).Replace("dse_sessionId=","");
-                            acb.dse_applicationId = -1;
-                            acb.dse_pageId = 1;
+                            //acb.dse_applicationId = -1;
+                            //acb.dse_pageId = 1;
                             acb.dse_operationName = "obkLoginOp";
                             acb.dse_errorPage = "ibk/login.jsp";
                             acb.dse_processorState = "initial";
@@ -190,9 +194,9 @@ namespace WebApi_NetCore.Shared
                     acb.UserName = "01652992622";
                     acb.PassWord = "Cocaca@1";
                     acb.dse_sessionId = html1.Substring(html1.IndexOf("dse_sessionId="), 37).Replace("dse_sessionId=", "");
-                    acb.dse_applicationId = -1;
+                    //acb.dse_applicationId = -1;
                     await DocHinh(acb.dse_sessionId);
-                    acb.dse_pageId = 2;
+                    //acb.dse_pageId = 2;
                     acb.dse_operationName = "obkLoginOp";
                     acb.dse_errorPage = "ibk/login.jsp";
                     acb.dse_processorState = "initial";
@@ -204,6 +208,36 @@ namespace WebApi_NetCore.Shared
            
 
             return test;
+        }
+        public async Task<string> DocHinh1()
+        {
+            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create("https://online.acb.com.vn/acbib/Captcha.jpg");
+            webRequest.Method = "GET";
+            webRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
+            webRequest.Host = "online.acb.com.vn";
+            webRequest.Accept = "*/*";
+            webRequest.Headers.Add("Accept-Encoding", "gzip, deflate, br");
+            WebResponse webResponse = webRequest.GetResponse();
+            var Cookie = webResponse.Headers["Set-Cookie"];
+            using (Stream webStream = webResponse.GetResponseStream() ?? Stream.Null)
+            using (StreamReader responseReader = new StreamReader(webStream))
+            {
+
+                var response = responseReader.ReadToEnd();
+                using (var memoryStream = new MemoryStream())
+                {
+                    responseReader.BaseStream.CopyTo(memoryStream);
+
+                    return Convert.ToBase64String(memoryStream.ToArray());
+                }
+             
+                //using (var re = responseReader.BaseStream)
+                //{
+                //    var bytes = re.
+                //}
+                //return JObject.Parse(response);
+            }
+            return Cookie;
         }
         public async Task DangNhap(ACBInput data)
         {
@@ -220,7 +254,7 @@ namespace WebApi_NetCore.Shared
             var JSESSIONID = new Cookie("JSESSIONID", "0000MepvJ4j_LkE7vY62yE76z6_:-1", "/", "online.acb.com.vn");
 
             data.dse_sessionId = "MepvJ4j_LkE7vY62yE76z6_";
-            data.dse_pageId = -7;
+            //data.dse_pageId = -7;
             data.SecurityCode = "7HA9K";
            
 
@@ -264,6 +298,7 @@ namespace WebApi_NetCore.Shared
             using (var handler = new HttpClientHandler { Credentials = credentials })
             using (var client = new HttpClient(handler))
             {
+                
                 var bytes = await client.GetByteArrayAsync("https://online.acb.com.vn/acbib/Captcha.jpg");
                 Debug.Print(Convert.ToBase64String(bytes));
 
@@ -271,7 +306,38 @@ namespace WebApi_NetCore.Shared
 
 
         }
-
+        public string getcaptcha(string id)
+        {
+            string url = "https://online.acb.com.vn/acbib/Captcha.jpg";
+            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
+            webRequest.Method = "GET";
+            webRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
+            webRequest.Host = "online.acb.com.vn";
+            webRequest.Accept = "*/*";
+            webRequest.Headers.Add("Accept-Encoding", "gzip, deflate, br");
+            webRequest.CookieContainer = new CookieContainer();
+            webRequest.CookieContainer.Add(new Cookie("JSESSIONID", "0000" + id + ":-1", "/", "online.acb.com.vn"));
+            IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
+            asyncResult.AsyncWaitHandle.WaitOne();
+            using (WebResponse webResponse = webRequest.EndGetResponse(asyncResult))
+            {
+                var Cookie = webResponse.Headers["Set-Cookie"];
+                //r = GetCookie(Cookie, r);
+                using (StreamReader rd = new StreamReader(webResponse.GetResponseStream()))
+                {
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        rd.BaseStream.CopyTo(memoryStream);
+                        var bytes = memoryStream.ToArray();
+                        //Debug.Print(Convert.ToBase64String(bytes));
+                       return TestDocHinh(Convert.ToBase64String(bytes));
+                        //return Convert.ToBase64String(bytes);
+                        //r.Base64Captcha = ChangeJpg(bytes);
+                    }
+                }
+            }
+            //return r;
+        }
         public JObject CallApi2(string url, string data)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://online.acb.com.vn/acbib/Captcha.jpg");
@@ -321,5 +387,757 @@ namespace WebApi_NetCore.Shared
             return o;
         }
 
+
+        public List<ChiTietGiaoDich> B1(string user,string pass)
+        {
+            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create("https://online.acb.com.vn/acbib/Request");
+            webRequest.Method = "GET";
+            webRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
+            webRequest.Host = "online.acb.com.vn";
+            webRequest.Accept = "*/*";
+            webRequest.Headers.Add("Accept-Encoding", "gzip, deflate, br");
+            webRequest.CookieContainer = new CookieContainer();
+
+            var sessionid = "";
+
+            WebResponse webResponse = webRequest.GetResponse();
+            var Cookie = webResponse.Headers["Set-Cookie"];
+            using (Stream webStream = webResponse.GetResponseStream() ?? Stream.Null)
+            using (StreamReader responseReader = new StreamReader(webStream))
+            {
+
+                string response = responseReader.ReadToEnd();
+                sessionid = response.Substring(response.IndexOf("dse_sessionId="), 37).Replace("dse_sessionId=", "");
+                //return JObject.Parse(response);
+            }
+            
+            return B3(sessionid,user,pass);
+        }
+        public string GetTS01(string ck)
+        {
+            if (ck.IndexOf("TS0124ae4f=") != -1)
+            {
+                var str = ck.Substring(ck.IndexOf("TS0124ae4f="), ck.IndexOf(";") - ck.IndexOf("TS0124ae4f=")).Replace("TS0124ae4f=", "");
+                return str;
+            }
+            return "";
+        }
+        public string GetTSa8(string ck)
+        {
+            if (ck.IndexOf("TS0124ae4f=") != -1)
+            {
+                string ts2 = ck.Substring(ck.IndexOf("TS0124ae4f="), ck.IndexOf(";") - ck.IndexOf("TS0124ae4f=")) + ";";
+                ts2 = ck.Replace(ts2, "");
+                ts2 = ts2.Substring(ts2.IndexOf("TSa8cee23f027="), ts2.LastIndexOf(";") - ts2.IndexOf("TSa8cee23f027=")).Replace("TSa8cee23f027=", "");
+                return ts2;
+            }
+            else
+            {
+                ck = ck.Substring(ck.IndexOf("TSa8cee23f027="), ck.IndexOf(";") - ck.IndexOf("TSa8cee23f027=")).Replace("TSa8cee23f027=", "");
+                return ck;
+            }            
+        }
+        public List<ChiTietGiaoDich> B2(string id,string user,string pass)
+        {
+            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create("https://online.acb.com.vn/acbib/Request?&dse_sessionId=" + id + "&dse_applicationId=-1&dse_pageId=2&dse_operationName=displayPageNotLoginOp&dse_errorPage=index.jsp&dse_processorState=initial&pageName=ibk/login.jsp");
+            webRequest.Method = "GET";
+            webRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
+            webRequest.Host = "online.acb.com.vn";
+            webRequest.Accept = "*/*";
+            webRequest.Headers.Add("Accept-Encoding", "gzip, deflate, br");
+            webRequest.CookieContainer = new CookieContainer();
+           
+            webRequest.CookieContainer.Add(new Cookie("JSESSIONID", "0000" + id + ":-1", "/", "online.acb.com.vn"));
+            //if (!string.IsNullOrWhiteSpace(ck1))
+            //{
+            //    webRequest.CookieContainer.Add(new Cookie("TS0124ae4f", ck1, "/", "online.acb.com.vn"));
+            //}
+            //if (!string.IsNullOrWhiteSpace(ck2))
+            //{
+            //    webRequest.CookieContainer.Add(new Cookie("TSa8cee23f027", ck2, "/", "online.acb.com.vn"));
+            //}
+            WebResponse webResponse = webRequest.GetResponse();
+            var Cookie = webResponse.Headers["Set-Cookie"];
+            using (Stream webStream = webResponse.GetResponseStream() ?? Stream.Null)
+            using (StreamReader responseReader = new StreamReader(webStream))
+            {
+
+                string response = responseReader.ReadToEnd();
+                //return JObject.Parse(response);
+            }
+            //await DocHinh("");
+            //getcaptcha(id);
+            //Debug.Print(a);
+
+            return B3(id,user,pass);
+        }
+        public List<ChiTietGiaoDich> B3(string id,string user,string pass)
+        {
+            //id = "olkawdVVo3nNHW0Sbjcf5ea";
+            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create("https://online.acb.com.vn/acbib/Request");
+            webRequest.Method = "POST";
+            webRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
+            webRequest.Host = "online.acb.com.vn";
+            webRequest.Accept = "*/*";
+            
+            webRequest.Headers.Add("Accept-Encoding", "gzip, deflate, br");
+            
+            webRequest.CookieContainer = new CookieContainer();
+            webRequest.ContentType = "application/x-www-form-urlencoded";
+            webRequest.CookieContainer.Add(new Cookie("JSESSIONID", "0000" + id +":-1", "/", "online.acb.com.vn"));
+           
+            var postData = "dse_sessionId=" + id;
+            postData += "&dse_applicationId=" + "-1";
+            postData += "&dse_pageId=" + "3";
+            postData += "&dse_operationName=" + "obkLoginOp";
+            postData += "&dse_errorPage=" + "ibk/login.jsp";
+            postData += "&dse_processorState=" + "initial";
+            postData += "&UserName=" + user;
+            postData += "&PassWord=" + pass;
+            postData += "&glbLogedIn=" + "WEB";
+            postData += "&SecurityCode=" + getcaptcha(id);
+            var data = Encoding.ASCII.GetBytes(postData);
+
+            webRequest.ContentLength = data.Length;
+
+            using (var stream = webRequest.GetRequestStream())
+            {
+                stream.Write(data, 0, data.Length);
+            }
+            WebResponse webResponse = webRequest.GetResponse();
+            var Cookie = webResponse.Headers["Set-Cookie"];
+            using (Stream webStream = webResponse.GetResponseStream() ?? Stream.Null)
+            using (StreamReader responseReader = new StreamReader(webStream))
+            {
+
+                string response = responseReader.ReadToEnd();
+                //return JObject.Parse(response);
+            }
+            return B4(id);
+        }
+        public List<ChiTietGiaoDich> B4(string id)
+        {
+            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create("https://online.acb.com.vn/acbib/Request?&dse_sessionId=" + id + "&dse_applicationId=-1&dse_pageId=4&dse_operationName=ibktransOnlineSumProc&dse_errorPage=/ibk/login.jsp&dse_processorState=initial&dse_nextEventName=start");
+            webRequest.Method = "GET";
+            webRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
+            webRequest.Host = "online.acb.com.vn";
+            webRequest.Accept = "*/*";
+            webRequest.Headers.Add("Accept-Encoding", "gzip, deflate, br");
+            webRequest.CookieContainer = new CookieContainer();
+
+            List<string> lst = new List<string>();
+
+            webRequest.CookieContainer.Add(new Cookie("JSESSIONID", "0000" + id + ":-1", "/", "online.acb.com.vn"));
+            WebResponse webResponse = webRequest.GetResponse();
+            var Cookie = webResponse.Headers["Set-Cookie"];
+            using (Stream webStream = webResponse.GetResponseStream() ?? Stream.Null)
+            using (StreamReader responseReader = new StreamReader(webStream))
+            {
+
+                string response = responseReader.ReadToEnd();
+                lst = CatChuoi(response);
+                //return JObject.Parse(response);
+            }
+
+            return GetList(lst,id);
+
+        }
+        public List<string> CatChuoi(string str) {
+            var res = new List<string>();
+            //str = File.ReadAllText("C:\\Users\\admin\\Desktop\\new9.html");
+            while (str.IndexOf("class=\"acc_bold\">Xem") != -1)
+            {
+                var test = str.IndexOf("class=\"acc_bold\">Xem");
+                var test1 = str.Substring(test - 239, 237);
+                res.Add(test1);
+                str = str.Remove(test,20);
+            }            
+            return res;
+        }
+        public List<ChiTietGiaoDich> GetList(List<string> str,string id) {
+            var res = new List<ChiTietGiaoDich>();
+            foreach(var item in str)
+            {
+                HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create("https://online.acb.com.vn/acbib/" + item );
+                webRequest.Method = "GET";
+                webRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
+                webRequest.Host = "online.acb.com.vn";
+                webRequest.Accept = "*/*";
+                webRequest.Headers.Add("Accept-Encoding", "gzip, deflate, br");
+                webRequest.CookieContainer = new CookieContainer();
+
+                ChiTietGiaoDich obj = new ChiTietGiaoDich();
+
+                webRequest.CookieContainer.Add(new Cookie("JSESSIONID", "0000" + id + ":-1", "/", "online.acb.com.vn"));
+                WebResponse webResponse = webRequest.GetResponse();
+                var Cookie = webResponse.Headers["Set-Cookie"];
+                using (Stream webStream = webResponse.GetResponseStream() ?? Stream.Null)
+                using (StreamReader responseReader = new StreamReader(webStream))
+                {
+
+                    string response = responseReader.ReadToEnd();
+                    StringWriter myWriter = new StringWriter();
+                    HttpUtility.HtmlDecode(response, myWriter);
+                    res.Add(DocFile(myWriter.ToString()));
+                    
+                    //lst = CatChuoi(response);
+                    //return JObject.Parse(response);
+                }
+            }
+            return res;
+        }
+        public ChiTietGiaoDich DocFile(string str)
+        {
+            var obj = new ChiTietGiaoDich();
+            //var str = File.ReadAllText("C:\\Users\\admin\\Downloads\\ACBOnline.html");
+            //str = str.Replace(" ", "");
+            //1
+            if (str.IndexOf("<td class=\"caption\">Số</td>") != -1)
+            {
+                string so = "";
+                var i = 27;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td class=\"caption\">Số</td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.So_P1 = so.Replace("\n","").Replace("\r", "").Replace("<td>","")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>","").Trim();
+            }
+            
+            if (str.IndexOf("<td>Ngày lập </td>") != -1)
+            {
+                string so = "";
+                var i = 18;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td>Ngày lập </td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.NgayLap_P1 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+            else if (str.IndexOf("<td >Ngày lập </td>") != -1)
+            {
+                string so = "";
+                var i = 19;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td >Ngày lập </td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.NgayLap_P1 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+
+            if (str.IndexOf("<td>Trạng thái </td>") != -1)
+            {
+                string so = "";
+                var i = 20;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td>Trạng thái </td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.TrangThai_P1 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+            else if (str.IndexOf("<td >Trạng thái </td>") != -1)
+            {
+                string so = "";
+                var i = 21;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td >Trạng thái </td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.TrangThai_P1 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+
+            if (str.IndexOf("<td>Tên đơn vị trả tiền </td>") != -1)
+            {
+                string so = "";
+                var i = 29;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td>Tên đơn vị trả tiền </td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.TenDonViDaTraTien_P1 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+          
+            if (str.IndexOf("<td>Tài khoản số </td>") != -1)
+            {
+                string so = "";
+                var i = 22;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td>Tài khoản số </td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.TaiKhoanSo_P1 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+            else if (str.IndexOf("<td >Tài khoản số </td>") != -1)
+            {
+                string so = "";
+                var i = 23;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td >Tài khoản số </td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.TaiKhoanSo_P1 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+
+            if (str.IndexOf("<td>Tại ngân hàng</td>") != -1)
+            {
+                string so = "";
+                var i = 22;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td>Tại ngân hàng</td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.TaiNganHang_P1 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+            else if (str.IndexOf("<td height=\"25\">Tại ngân hàng</td>") != -1)
+            {
+                string so = "";
+                var i = 34;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td height=\"25\">Tại ngân hàng</td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.TaiNganHang_P1 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+            //2
+            if (str.IndexOf("<td>Tên đơn vị nhận tiền </td>") != -1)
+            {
+                string so = "";
+                var i = 30;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td>Tên đơn vị nhận tiền </td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.TenDonViNhanTien_P2 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+            else if (str.IndexOf("<td height=\"25\">Tên đơn vị nhận tiền </td>") != -1)
+            {
+                string so = "";
+                var i = 42;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td height=\"25\">Tên đơn vị nhận tiền </td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.TenDonViNhanTien_P2 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+
+            if (str.IndexOf("<td>Số CMND /Passport</td>") != -1)
+            {
+                string so = "";
+                var i = 26;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td>Số CMND /Passport</td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.SoCMND_P2 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+            else if (str.IndexOf("<td height=\"25\">Số CMND /Passport</td>") != -1)
+            {
+                string so = "";
+                var i = 38;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td height=\"25\">Số CMND /Passport</td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.SoCMND_P2 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+
+            if (str.IndexOf("<td>Ngày cấp</td>") != -1)
+            {
+                string so = "";
+                var i = 17;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td>Ngày cấp</td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.NgayCap_P2 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+            else if (str.IndexOf("<td height=\"25\">Ngày cấp</td>") != -1)
+            {
+                string so = "";
+                var i = 29;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td height=\"25\">Ngày cấp</td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.NgayCap_P2 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+
+            if (str.IndexOf("<td>Nơi cấp</td>") != -1)
+            {
+                string so = "";
+                var i = 16;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td>Nơi cấp</td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.NoiCap_P2 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+            else if (str.IndexOf("<td height=\"25\">Nơi cấp</td>") != -1)
+            {
+                string so = "";
+                var i = 28;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td height=\"25\">Nơi cấp</td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.NoiCap_P2 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+
+            if (str.LastIndexOf("<td>Tài khoản số</td>") != -1)
+            {
+                string so = "";
+                var i = 21;
+                while (true)
+                {
+                    so += str.Substring(str.LastIndexOf("<td>Tài khoản số</td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.TaiKhoanSo_P2 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+            else if (str.LastIndexOf("<td height=\"25\">Tài khoản số</td>") != -1)
+            {
+                string so = "";
+                var i = 33;
+                while (true)
+                {
+                    so += str.Substring(str.LastIndexOf("<td height=\"25\">Tài khoản số</td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.TaiKhoanSo_P2 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+
+            if (str.LastIndexOf("<td>Tại ngân hàng</td>") != -1)
+            {
+                string so = "";
+                var i = 22;
+                while (true)
+                {
+                    so += str.Substring(str.LastIndexOf("<td>Tại ngân hàng</td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.TaiNganHang_P2 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+            else if (str.LastIndexOf("<td height=\"25\">Tại ngân hàng</td>") != -1)
+            {
+                string so = "";
+                var i = 34;
+                while (true)
+                {
+                    so += str.Substring(str.LastIndexOf("<td height=\"25\">Tại ngân hàng</td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.TaiNganHang_P2 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+            //3
+            if (str.IndexOf("<td>Số tiền</td>") != -1)
+            {
+                string so = "";
+                var i = 16;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td>Số tiền</td>") + i, 1);
+                    i++;
+                    if (so.Contains("VND") || so.Contains("USD"))
+                    {
+                        break;
+                    }
+                }
+                obj.SoTien_P3 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+            else if (str.IndexOf("<td height=\"25\">Số tiền</td>") != -1)
+            {
+                string so = "";
+                var i = 28;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td height=\"25\">Số tiền</td>") + i, 1);
+                    i++;
+                    if (so.Contains("VND") || so.Contains("USD"))
+                    {
+                        break;
+                    }
+                }
+                obj.SoTien_P3 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+
+            if (str.IndexOf("<td>Số tiền bằng chữ</td>") != -1)
+            {
+                string so = "";
+                var i = 25;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td>Số tiền bằng chữ</td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.SoTienBangChu_P3 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Replace("<script>document.write(chu());</script>","").Trim();
+            }
+            else if (str.IndexOf("<td  height=\"25\">Số tiền bằng chữ</td>") != -1)
+            {
+                string so = "";
+                var i = 38;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td  height=\"25\">Số tiền bằng chữ</td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.SoTienBangChu_P3 = so.Replace("\n", "").Replace("\r", "")
+                    .Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Replace("<script>document.write(chu());</script>", "").Trim();
+            }
+
+            if (str.IndexOf("<td>Nội dung chuyển khoản</td>") != -1)
+            {
+                string so = "";
+                var i = 30;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td>Nội dung chuyển khoản</td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.NoiDungChuyenKhoan_P3 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+            else if (str.IndexOf("<td  height=\"25\">Nội dung chuyển khoản</td>") != -1)
+            {
+                string so = "";
+                var i = 43;
+                while (true)
+                {
+                    so += str.Substring(str.IndexOf("<td  height=\"25\">Nội dung chuyển khoản</td>") + i, 1);
+                    i++;
+                    if (so.Contains("</td>"))
+                    {
+                        break;
+                    }
+                }
+                obj.NoiDungChuyenKhoan_P3 = so.Replace("\n", "").Replace("\r", "").Replace("<td>", "")
+                    .Replace("<td >", "")
+                    .Replace("<td  >", "")
+                    .Replace("</td>", "").Trim();
+            }
+            return obj;
+        }
+
+        public string TestDocHinh(string base64)
+        {
+            var bit = Base64StringToBitmap(base64);
+            //var method = new MethodsCaptchaSolver();
+            bit = new Bitmap(bit);
+            return MethodsCaptchaSolver.OCR(bit);
+        }
+        public static Bitmap Base64StringToBitmap(string base64String)
+        {
+            
+            Bitmap bmpReturn = null;
+            //Convert Base64 string to byte[]
+            byte[] byteBuffer = Convert.FromBase64String(base64String);
+            MemoryStream memoryStream = new MemoryStream(byteBuffer);
+
+            memoryStream.Position = 0;
+
+            bmpReturn = (Bitmap)Bitmap.FromStream(memoryStream);
+
+            memoryStream.Close();
+            memoryStream = null;
+            byteBuffer = null;
+
+            return bmpReturn;
+        }
     }
 }

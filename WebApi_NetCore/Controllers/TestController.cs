@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Castle.Core.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
+using WebApi_NetCore.Model;
 using WebApi_NetCore.Shared;
 
 namespace WebApi_NetCore.Controllers
@@ -30,6 +31,8 @@ namespace WebApi_NetCore.Controllers
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
+            //var _callApi = new CallApi();
+            //var a = _callApi.TestDocHinh();
             var rng = new Random();
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
@@ -40,13 +43,29 @@ namespace WebApi_NetCore.Controllers
             .ToArray();
         }
         [HttpPost]
-        public JObject TestApi(string url, string data)
+        public List<ChiTietGiaoDich> TestApi(string user, string pass)
         {
+            var lst = new List<ChiTietGiaoDich>();
+            if (string.IsNullOrWhiteSpace(user))
+            {
+                lst.Add(new ChiTietGiaoDich { NoiDungChuyenKhoan_P3 = "Tên đăng nhập không được để trống" });
+                return lst;
+            }
+            if (string.IsNullOrWhiteSpace(pass))
+            {
+                lst.Add(new ChiTietGiaoDich { NoiDungChuyenKhoan_P3 = "Mật khẩu không được để trống" });
+                return lst;
+            }
             //var token = _callApi.GetToken("",)
             var _callApi = new CallApi();
-            var test = _callApi.CallApiGet1(url, "").Result;
-
-            return test;
+            var res = _callApi.B1(user,pass);
+            return res;
         }
+        //[HttpGet]
+        //public string TestDocHinh()
+        //{
+        //    var _callApi = new CallApi();
+        //    return _callApi.TestDocHinh();
+        //}
     }
 }
