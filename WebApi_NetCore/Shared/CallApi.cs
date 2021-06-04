@@ -509,13 +509,18 @@ namespace WebApi_NetCore.Shared
             {
                 stream.Write(data, 0, data.Length);
             }
-            WebResponse webResponse = webRequest.GetResponse();
-            var Cookie = webResponse.Headers["Set-Cookie"];
+           
+            WebResponse webResponse = webRequest.GetResponse();           
             using (Stream webStream = webResponse.GetResponseStream() ?? Stream.Null)
             using (StreamReader responseReader = new StreamReader(webStream))
             {
 
                 string response = responseReader.ReadToEnd();
+                if(response.IndexOf("obkLoginOp") != -1)
+                {
+                    Thread.Sleep(2000);
+                    B3(id, user, pass);
+                }
                 //return JObject.Parse(response);
             }
             return B4(id);
