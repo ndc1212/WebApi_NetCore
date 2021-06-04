@@ -12,6 +12,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -329,8 +330,12 @@ namespace WebApi_NetCore.Shared
                     {
                         rd.BaseStream.CopyTo(memoryStream);
                         var bytes = memoryStream.ToArray();
+                       
                         //Debug.Print(Convert.ToBase64String(bytes));
-                       return TestDocHinh(Convert.ToBase64String(bytes));
+                        var captcha = TestDocHinh(Convert.ToBase64String(bytes));
+
+                        File.WriteAllBytes("D:\\Captcha\\" + captcha + ".jpg", bytes);
+                        return captcha;
                         //return Convert.ToBase64String(bytes);
                         //r.Base64Captcha = ChangeJpg(bytes);
                     }
@@ -538,7 +543,11 @@ namespace WebApi_NetCore.Shared
                 lst = CatChuoi(response);
                 //return JObject.Parse(response);
             }
-
+            //var lstchitiet = new List<ChiTietGiaoDich>();
+            //foreach(var item in lst)
+            //{
+            //    lstchitiet.Add(GetList1(item, id));
+            //}
             return GetList(lst,id);
 
         }
@@ -554,10 +563,47 @@ namespace WebApi_NetCore.Shared
             }            
             return res;
         }
+        public ChiTietGiaoDich GetList1(string item, string id)
+        {
+            Thread.Sleep(500);
+            var res = new ChiTietGiaoDich();
+            //foreach (var item in str)
+            //{
+                HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create("https://online.acb.com.vn/acbib/" + item);
+                webRequest.Method = "GET";
+                webRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
+                webRequest.Host = "online.acb.com.vn";
+                webRequest.Accept = "*/*";
+                webRequest.Headers.Add("Accept-Encoding", "gzip, deflate, br");
+                webRequest.CookieContainer = new CookieContainer();
+
+                ChiTietGiaoDich obj = new ChiTietGiaoDich();
+
+                webRequest.CookieContainer.Add(new Cookie("JSESSIONID", "0000" + id + ":-1", "/", "online.acb.com.vn"));
+                WebResponse webResponse = webRequest.GetResponse();
+                IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
+                asyncResult.AsyncWaitHandle.WaitOne();
+                using (Stream webStream = webResponse.GetResponseStream() ?? Stream.Null)
+                using (StreamReader responseReader = new StreamReader(webStream))
+                {
+
+                    string response = responseReader.ReadToEnd();
+                    StringWriter myWriter = new StringWriter();
+                    HttpUtility.HtmlDecode(response, myWriter);
+                    res = DocFile(myWriter.ToString());
+                    
+                    //lst = CatChuoi(response);
+                    //return JObject.Parse(response);
+                }
+            //}
+            return res;
+        }
         public List<ChiTietGiaoDich> GetList(List<string> str,string id) {
             var res = new List<ChiTietGiaoDich>();
-            foreach(var item in str)
+            var i = 0;
+            foreach (var item in str)
             {
+                
                 HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create("https://online.acb.com.vn/acbib/" + item );
                 webRequest.Method = "GET";
                 webRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
@@ -571,6 +617,7 @@ namespace WebApi_NetCore.Shared
                 webRequest.CookieContainer.Add(new Cookie("JSESSIONID", "0000" + id + ":-1", "/", "online.acb.com.vn"));
                 WebResponse webResponse = webRequest.GetResponse();
                 var Cookie = webResponse.Headers["Set-Cookie"];
+                Thread.Sleep(2000);
                 using (Stream webStream = webResponse.GetResponseStream() ?? Stream.Null)
                 using (StreamReader responseReader = new StreamReader(webStream))
                 {
@@ -579,10 +626,12 @@ namespace WebApi_NetCore.Shared
                     StringWriter myWriter = new StringWriter();
                     HttpUtility.HtmlDecode(response, myWriter);
                     res.Add(DocFile(myWriter.ToString()));
-                    
+                    File.WriteAllText("D:\\Html\\" + i + ".txt", myWriter.ToString());
+                    i++;
                     //lst = CatChuoi(response);
                     //return JObject.Parse(response);
                 }
+                
             }
             return res;
         }

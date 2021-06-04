@@ -33,6 +33,8 @@ namespace WebApi_NetCore.Shared
 
                     using (var page = engine.Process(x, PageSegMode.SingleLine))
                         res = page.GetText().Replace(" ", "").Trim();
+
+                    
                 }
 
                 return res;
