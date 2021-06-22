@@ -393,7 +393,7 @@ namespace WebApi_NetCore.Shared
         }
 
 
-        public List<ChiTietGiaoDich> B1(string user,string pass)
+        public List<ThongTinGiaoDich> B1(string user,string pass)
         {
             HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create("https://online.acb.com.vn/acbib/Request");
             webRequest.Method = "GET";
@@ -442,7 +442,7 @@ namespace WebApi_NetCore.Shared
                 return ck;
             }            
         }
-        public List<ChiTietGiaoDich> B2(string id,string user,string pass)
+        public List<ThongTinGiaoDich> B2(string id,string user,string pass)
         {
             HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create("https://online.acb.com.vn/acbib/Request?&dse_sessionId=" + id + "&dse_applicationId=-1&dse_pageId=2&dse_operationName=displayPageNotLoginOp&dse_errorPage=index.jsp&dse_processorState=initial&pageName=ibk/login.jsp");
             webRequest.Method = "GET";
@@ -476,7 +476,7 @@ namespace WebApi_NetCore.Shared
 
             return B3(id,user,pass);
         }
-        public List<ChiTietGiaoDich> B3(string id,string user,string pass)
+        public List<ThongTinGiaoDich> B3(string id,string user,string pass)
         {
             //id = "olkawdVVo3nNHW0Sbjcf5ea";
             HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create("https://online.acb.com.vn/acbib/Request");
@@ -525,7 +525,7 @@ namespace WebApi_NetCore.Shared
             }
             return B4(id);
         }
-        public List<ChiTietGiaoDich> B4(string id)
+        public List<ThongTinGiaoDich> B4(string id)
         {
             HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create("https://online.acb.com.vn/acbib/Request?&dse_sessionId=" + id + "&dse_applicationId=-1&dse_pageId=4&dse_operationName=ibktransOnlineSumProc&dse_errorPage=/ibk/login.jsp&dse_processorState=initial&dse_nextEventName=start");
             webRequest.Method = "GET";
@@ -540,12 +540,14 @@ namespace WebApi_NetCore.Shared
             webRequest.CookieContainer.Add(new Cookie("JSESSIONID", "0000" + id + ":-1", "/", "online.acb.com.vn"));
             WebResponse webResponse = webRequest.GetResponse();
             var Cookie = webResponse.Headers["Set-Cookie"];
+            string html = "";
             using (Stream webStream = webResponse.GetResponseStream() ?? Stream.Null)
             using (StreamReader responseReader = new StreamReader(webStream))
             {
 
                 string response = responseReader.ReadToEnd();
-                lst = CatChuoi(response);
+                html = response;
+                //lst = CatChuoi(response);
                 //return JObject.Parse(response);
             }
             //var lstchitiet = new List<ChiTietGiaoDich>();
@@ -553,8 +555,65 @@ namespace WebApi_NetCore.Shared
             //{
             //    lstchitiet.Add(GetList1(item, id));
             //}
-            return GetList(lst,id);
+            //return GetThongTin(res);
+            return GetThongTin(html);
+        }
+        public List<ThongTinGiaoDich> GetThongTin(string text)
+        {
+            //text = File.ReadAllText("C:\\Users\\admin\\Desktop\\new9.html");
+            var lst = new List<ThongTinGiaoDich>();
+            var lstnho = text.Split("<tr class=\"table-style-double\">").ToList();
+            //lstnho.RemoveAt(lstnho.Count() - 1);
+            if (lstnho.Count() > 0)
+            {
+                lstnho.RemoveAt(0);
+            }
+            if (lstnho.Count() > 0)
+            {
+                lstnho.RemoveAt(0);
+            }
+            // Tách tr
+            //for (int i = lstnho.Count() - 1; i >= 0 ; i--){
+            //    if (i % 2 == 1)
+            //    {
+            //        lstnho.RemoveAt(i);
+            //    }            
+            //}
+            // Tách td
+            for(var i = 0; i <= lstnho.Count() - 1; i++)
+            {
+                var tachtd = lstnho[i].Split("<td").ToList();
+                tachtd.RemoveAt(tachtd.Count() - 1);
+                tachtd.RemoveAt(0);
+                //var test = lstnho[i+1].Split("<td")[3].Split(">")[2].Replace("</div","");
+                if (i + 1 < lstnho.Count())
+                {
+                    if (i % 2 == 0 || i == 0)
+                    {
+                        lst.Add(new ThongTinGiaoDich()
+                        {
+                            Ngay = tachtd[1].Replace("<br/>", " ").Split(">")[1].Replace("</td", ""),
+                            SoTien = tachtd[4].Split(">")[1].Replace("</td", ""),
+                            TaiKhoan = tachtd[2].Split(">")[1].Replace("</td", ""),
+                            TenDangNhap = lstnho[i + 1].Split("<td")[3].Split(">")[2].Replace("</div", "")
+                        });
+                    }
+                }
+            }
+            if(lst.Count() == 0)
+            {
+                Debug.Print(text);
+            }
+            //while(text.Contains("<tr class=\"table-style-double\">"))
+            //{
+            //    var dl = "";
+            //    while (true)
+            //    {
+            //        dl += text.IndexOf("<tr class=\"table-style-double\">")
+            //    }    
+            //}
 
+            return lst;
         }
         public List<string> CatChuoi(string str) {
             var res = new List<string>();

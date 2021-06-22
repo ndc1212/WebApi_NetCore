@@ -36,4 +36,12 @@ namespace WebApi_NetCore.Model
         public string SoTienBangChu_P3 { get; set; }
         public string NoiDungChuyenKhoan_P3 { get; set; }
     }
+    public class ThongTinGiaoDich
+    {
+        public string Ngay { get; set; }
+        public string TaiKhoan { get; set; }
+        public string SoTien { get; set; }
+        public string TenDangNhap { get; set; }
+       // public string Ngay { get; set; }
+    }
 }

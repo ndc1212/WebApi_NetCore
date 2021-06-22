@@ -12,7 +12,7 @@ namespace WebApi_NetCore.Shared
         JObject CallApi1(string url, string data, string accessToken);
         JObject CallApi2(string url, string data);
         Task<JObject> CallApiGet(string url, string accessToken);
-        List<ChiTietGiaoDich> B1(string user, string pass);
+        List<ThongTinGiaoDich> B1(string user, string pass);
         List<string> CatChuoi(string str);
         ChiTietGiaoDich DocFile(string str);
         string TestDocHinh(string base64);

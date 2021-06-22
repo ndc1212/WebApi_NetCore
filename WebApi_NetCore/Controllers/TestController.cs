@@ -29,31 +29,36 @@ namespace WebApi_NetCore.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<WeatherForecast> Get()
+        public List<ThongTinGiaoDich> Get()
         {
             //var _callApi = new CallApi();
             //var a = _callApi.TestDocHinh();
-            var rng = new Random();
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = rng.Next(-20, 55),
-                Summary = Summaries[rng.Next(Summaries.Length)]
-            })
-            .ToArray();
+           
+            var _callApi = new CallApi();
+            string str = "";
+            var res = _callApi.GetThongTin(str);
+            return res;
+            //var rng = new Random();
+            //return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            //{
+            //    Date = DateTime.Now.AddDays(index),
+            //    TemperatureC = rng.Next(-20, 55),
+            //    Summary = Summaries[rng.Next(Summaries.Length)]
+            //})
+            //.ToArray();
         }
         [HttpPost]
-        public List<ChiTietGiaoDich> TestApi(string user, string pass)
+        public List<ThongTinGiaoDich> TestApi(string user, string pass)
         {
-            var lst = new List<ChiTietGiaoDich>();
+            var lst = new List<ThongTinGiaoDich>();
             if (string.IsNullOrWhiteSpace(user))
             {
-                lst.Add(new ChiTietGiaoDich { NoiDungChuyenKhoan_P3 = "Tên đăng nhập không được để trống" });
+                lst.Add(new ThongTinGiaoDich { TaiKhoan = "Tên đăng nhập không được để trống" });
                 return lst;
             }
             if (string.IsNullOrWhiteSpace(pass))
             {
-                lst.Add(new ChiTietGiaoDich { NoiDungChuyenKhoan_P3 = "Mật khẩu không được để trống" });
+                lst.Add(new ThongTinGiaoDich { TaiKhoan = "Mật khẩu không được để trống" });
                 return lst;
             }
             //var token = _callApi.GetToken("",)
