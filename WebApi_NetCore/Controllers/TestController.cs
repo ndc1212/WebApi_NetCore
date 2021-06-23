@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Castle.Core.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
+using WebApi_NetCore.DB;
 using WebApi_NetCore.Model;
 using WebApi_NetCore.Shared;
 
@@ -14,7 +16,8 @@ namespace WebApi_NetCore.Controllers
     [Route("/api/[controller]")]
     public class TestController : ControllerBase
     {
-        //private readonly ICallApi _callApi;
+        private readonly DemoDbContext _demoDbContext;
+        //private readonly CallApi _callApi;
         private static readonly string[] Summaries = new[]
         {
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
@@ -22,22 +25,23 @@ namespace WebApi_NetCore.Controllers
 
         //private readonly ILogger _logger;
 
-        public TestController()
+        public TestController(DemoDbContext demoDbContext)
         {
+            _demoDbContext = demoDbContext;
+            
             //_logger = logger;
             //_callApi = callApi;
         }
 
         [HttpGet]
-        public List<ThongTinGiaoDich> Get()
+        public string Get()
         {
             //var _callApi = new CallApi();
             //var a = _callApi.TestDocHinh();
            
-            var _callApi = new CallApi();
-            string str = "";
-            var res = _callApi.GetThongTin(str);
-            return res;
+            //var _callApi = new CallApi();
+            var a = _demoDbContext.GiaoDichChuyenTiens.ToList();
+            return "01652992622/Cocaca@1";
             //var rng = new Random();
             //return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             //{
@@ -48,22 +52,40 @@ namespace WebApi_NetCore.Controllers
             //.ToArray();
         }
         [HttpPost]
-        public List<ThongTinGiaoDich> TestApi(string user, string pass)
+        public List<ThongTinGiaoDich> TestApi(DangNhapInput input)
         {
             var lst = new List<ThongTinGiaoDich>();
-            if (string.IsNullOrWhiteSpace(user))
+            if (string.IsNullOrWhiteSpace(input.user))
             {
                 lst.Add(new ThongTinGiaoDich { TaiKhoan = "Tên đăng nhập không được để trống" });
                 return lst;
             }
-            if (string.IsNullOrWhiteSpace(pass))
+            if (string.IsNullOrWhiteSpace(input.pass))
             {
                 lst.Add(new ThongTinGiaoDich { TaiKhoan = "Mật khẩu không được để trống" });
                 return lst;
             }
             //var token = _callApi.GetToken("",)
+            var ngaybatdau = _demoDbContext.GiaoDichChuyenTiens.OrderByDescending(o => o.GiaoDich_ThoiGian).Select(o=>o.GiaoDich_ThoiGian).FirstOrDefault();
             var _callApi = new CallApi();
-            var res = _callApi.B1(user,pass);
+            var res = _callApi.B1(input.user, input.pass,ngaybatdau);
+            res = res.Where(o => o.TenDangNhap.Contains("nap")).ToList();
+            foreach(var item in res)
+            {
+                _demoDbContext.GiaoDichChuyenTiens.Add(new DB.Table.GiaoDichChuyenTien
+                {
+                    GiaoDich_SoTien = item.SoTien.Replace(".",","),
+                    GiaoDich_PhuongThuc = "CKNH",
+                    GiaoDich_TaiKhoan = item.TaiKhoan,
+                    GiaoDich_ThoiGian = Convert.ToDateTime(item.Ngay.Replace(item.Ngay.Split("-")[0]+"-"+ item.Ngay.Split("-")[1], item.Ngay.Split("-")[1] + "-" + item.Ngay.Split("-")[0])),
+                    TenDangNhap = item.TenDangNhap.Replace("nap","").Trim(),
+                    CreationTime= DateTime.Now
+                });
+                _demoDbContext.SaveChanges();
+            }
+           
+
+
             return res;
         }
         //[HttpGet]

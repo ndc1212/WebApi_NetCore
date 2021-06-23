@@ -44,4 +44,10 @@ namespace WebApi_NetCore.Model
         public string TenDangNhap { get; set; }
        // public string Ngay { get; set; }
     }
+    public class DangNhapInput 
+    { 
+        public string user { get; set; }
+        public string pass { get; set; }
+    }
+
 }

@@ -4,8 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using WebApi_NetCore.Shared;
 
 namespace WebApi_NetCore
 {
@@ -21,6 +23,7 @@ namespace WebApi_NetCore
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                });
+                }).ConfigureServices(services =>
+                    services.AddHostedService<DerivedBackgroundPrinter>());
     }
 }
