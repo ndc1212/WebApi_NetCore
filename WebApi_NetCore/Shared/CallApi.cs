@@ -30,6 +30,7 @@ namespace WebApi_NetCore.Shared
             //_demoDbContext = demoDbContext;
         }
         public static int icong = 0;
+        public static string Cookies_sessionId = "";
         public JObject CallApi1(string url, string data, string accessToken)
         {
             //Logger.Error($"LOG ẤN NÚT HOÀN THÀNH CALLAPI url: {url}, data: {data}, accessToken: { accessToken}");
@@ -401,28 +402,42 @@ namespace WebApi_NetCore.Shared
 
         public List<ThongTinGiaoDich> B1(string user,string pass,DateTime? ngaybatdau)
         {
-            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create("https://online.acb.com.vn/acbib/Request");
-            webRequest.Method = "GET";
-            webRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
-            webRequest.Host = "online.acb.com.vn";
-            webRequest.Accept = "*/*";
-            webRequest.Headers.Add("Accept-Encoding", "gzip, deflate, br");
-            webRequest.CookieContainer = new CookieContainer();
-
-            var sessionid = "";
-
-            WebResponse webResponse = webRequest.GetResponse();
-            var Cookie = webResponse.Headers["Set-Cookie"];
-            using (Stream webStream = webResponse.GetResponseStream() ?? Stream.Null)
-            using (StreamReader responseReader = new StreamReader(webStream))
+            if(icong == 100)
+            {
+                icong = 0;
+                Cookies_sessionId = "";
+            }
+            if (!string.IsNullOrWhiteSpace(Cookies_sessionId))
+            {
+                return B4(Cookies_sessionId, ngaybatdau);
+            }
+            else
             {
 
-                string response = responseReader.ReadToEnd();
-                sessionid = response.Substring(response.IndexOf("dse_sessionId="), 37).Replace("dse_sessionId=", "");
-                //return JObject.Parse(response);
+
+                HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create("https://online.acb.com.vn/acbib/Request");
+                webRequest.Method = "GET";
+                webRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
+                webRequest.Host = "online.acb.com.vn";
+                webRequest.Accept = "*/*";
+                webRequest.Headers.Add("Accept-Encoding", "gzip, deflate, br");
+                webRequest.CookieContainer = new CookieContainer();
+
+                var sessionid = "";
+
+                WebResponse webResponse = webRequest.GetResponse();
+                var Cookie = webResponse.Headers["Set-Cookie"];
+                using (Stream webStream = webResponse.GetResponseStream() ?? Stream.Null)
+                using (StreamReader responseReader = new StreamReader(webStream))
+                {
+
+                    string response = responseReader.ReadToEnd();
+                    sessionid = response.Substring(response.IndexOf("dse_sessionId="), 37).Replace("dse_sessionId=", "");
+                    //return JObject.Parse(response);
+                }
+
+                return B3(sessionid, user, pass, ngaybatdau);
             }
-            
-            return B3(sessionid,user,pass,ngaybatdau);
         }
         public string GetTS01(string ck)
         {
@@ -523,6 +538,9 @@ namespace WebApi_NetCore.Shared
         }
         public List<ThongTinGiaoDich> B4(string id, DateTime? ngaybatdau)
         {
+            icong++;
+            Cookies_sessionId = id;
+
             HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create("https://online.acb.com.vn/acbib/Request?&dse_sessionId=" + id + "&dse_applicationId=-1&dse_pageId=4&dse_operationName=ibktransOnlineSumProc&dse_errorPage=/ibk/login.jsp&dse_processorState=initial&dse_nextEventName=start");
             webRequest.Method = "GET";
             webRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
@@ -542,6 +560,7 @@ namespace WebApi_NetCore.Shared
             {
 
                 string response = responseReader.ReadToEnd();
+                Debug.Print(response);
                 html = response;
                 //lst = CatChuoi(response);
                 //return JObject.Parse(response);
