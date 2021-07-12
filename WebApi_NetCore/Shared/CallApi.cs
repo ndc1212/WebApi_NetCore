@@ -402,7 +402,7 @@ namespace WebApi_NetCore.Shared
 
         public List<ThongTinGiaoDich> B1(string user,string pass,DateTime? ngaybatdau)
         {
-            if(icong == 100)
+            if(icong == 1)
             {
                 icong = 0;
                 Cookies_sessionId = "";

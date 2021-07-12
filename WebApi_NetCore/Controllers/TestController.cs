@@ -88,11 +88,11 @@ namespace WebApi_NetCore.Controllers
 
             return res;
         }
-        //[HttpGet]
-        //public string TestDocHinh()
-        //{
-        //    var _callApi = new CallApi();
-        //    return _callApi.TestDocHinh();
-        //}
+        [Route("/TestjDO")]
+        public string TestDocHinh()
+        {
+            var _callApi = new CallApi();
+            return "aaa";
+        }
     }
 }

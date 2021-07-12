@@ -78,7 +78,7 @@ namespace WebApi_NetCore.Shared
                 var _callApi = new CallApi();
                 var res = _callApi.B1("01652992622", "Cocaca@1", ngaybatdau);
                 Debug.Print(res.Count().ToString());
-                //res = res.Where(o => o.TenDangNhap.Contains("nap")).ToList();
+                res = res.Where(o => o.TenDangNhap.Contains("nap")).ToList();
                 foreach (var item in res)
                 {
                     
