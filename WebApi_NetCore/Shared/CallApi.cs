@@ -534,7 +534,101 @@ namespace WebApi_NetCore.Shared
                 }
                 //return JObject.Parse(response);
             }
-            return B4(id,ngaybatdau);
+            //return B4(id,ngaybatdau);
+            return B5(id,ngaybatdau);
+        }
+
+        public List<ThongTinGiaoDich> B5(string id,DateTime? ngaybatdau)
+        {
+            icong++;
+            Cookies_sessionId = id;
+            try
+            {
+                HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create("https://online.acb.com.vn/acbib/Request");
+                webRequest.Method = "POST";
+                webRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
+                webRequest.Host = "online.acb.com.vn";
+                webRequest.Accept = "*/*";
+
+                webRequest.Headers.Add("Accept-Encoding", "gzip, deflate, br");
+
+                webRequest.CookieContainer = new CookieContainer();
+                webRequest.ContentType = "application/x-www-form-urlencoded";
+                webRequest.CookieContainer.Add(new Cookie("JSESSIONID", "0000" + id + ":-1", "/", "online.acb.com.vn"));
+
+
+                var postData = "dse_sessionId=" + id;
+                postData += "&dse_applicationId=" + "-1";
+                postData += "&dse_operationName=" + "ibkacctDetailProc";
+                postData += "&dse_pageId=" + "3";
+                postData += "&dse_processorState=" + "acctDetailPage";
+                postData += "&dse_errorPage=" + "/ibk/acctinquiry/trans.jsp";
+                postData += "&AccountNbr=" + "259723809";
+                postData += "&CheckRef=" + "false";
+                postData += "&EdtRef=" + "";
+                postData += "&dse_nextEventName=" + "byDate";
+                postData += "&FromDate=" + DateTime.Now.AddDays(-15).ToString("dd/MM/yyyy");
+                postData += "&ToDate=" + DateTime.Now.AddDays(1).ToString("dd/MM/yyyy");
+
+                List<string> lst = new List<string>();
+
+                var data = Encoding.ASCII.GetBytes(postData);
+
+                webRequest.ContentLength = data.Length;
+
+                using (var stream = webRequest.GetRequestStream())
+                {
+                    stream.Write(data, 0, data.Length);
+                }
+
+                WebResponse webResponse = webRequest.GetResponse();
+                using (Stream webStream = webResponse.GetResponseStream() ?? Stream.Null)
+                using (StreamReader responseReader = new StreamReader(webStream))
+                {
+
+                    string response = responseReader.ReadToEnd();
+                    Debug.Print(response);
+                    return GetList(response);
+                    //if (response.IndexOf("obkLoginOp") != -1)
+                    //{
+                    //    Thread.Sleep(2000);
+                    //    B3(id, user, pass, ngaybatdau);
+                    //}
+                    //return JObject.Parse(response);
+                }
+            }catch(Exception ex)
+            {
+                Thread.Sleep(2000);
+                return B5(id,ngaybatdau);
+            }
+            //return new List<ThongTinGiaoDich>();
+        }
+        public List<ThongTinGiaoDich> GetList(string html)
+        {
+            //html = File.ReadAllText("C:\\Users\\admin\\Desktop\\new9.html");
+            var res = new List<ThongTinGiaoDich>();
+            var lsttd = html.Split("id=\"table1\"").ToList();
+            lsttd.RemoveAt(0);
+            var stringsau = lsttd[0];
+            lsttd = stringsau.Split("</table>").ToList();
+            stringsau = lsttd[0];
+            lsttd = stringsau.Split("</tr>").ToList();
+            lsttd.RemoveAt(lsttd.Count - 1);
+            lsttd.RemoveAt(0);
+
+            foreach(var item in lsttd)
+            {
+                var test = item.Split("<td");
+                var gd = new ThongTinGiaoDich();
+                gd.TaiKhoan = item.Split("<td")[2].Split(">")[1].Replace("</td", "");
+                gd.SoTien = item.Split("<td")[6].Split(">")[1].Replace("</td", "");
+                gd.Ngay = item.Split("<td")[1].Split(">")[1].Replace("</td", "");
+                gd.TenDangNhap = item.Split("<td")[4].Split("class=\"td_desc\"")[1].Split(">")[1].Replace("</div", "");
+                res.Add(gd);
+            }
+
+
+            return res;
         }
         public List<ThongTinGiaoDich> B4(string id, DateTime? ngaybatdau)
         {
@@ -1249,7 +1343,6 @@ namespace WebApi_NetCore.Shared
             }
             return obj;
         }
-
         public string TestDocHinh(string base64)
         {
             var bit = Base64StringToBitmap(base64);

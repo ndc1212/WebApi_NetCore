@@ -15,6 +15,7 @@ namespace WebApi_NetCore.DB
 
         }
         public DbSet<GiaoDichChuyenTien> GiaoDichChuyenTiens { get; set; }
+        public DbSet<NguoiDungThongTin> NguoiDungThongTins { get; set; }
 
 
     } 

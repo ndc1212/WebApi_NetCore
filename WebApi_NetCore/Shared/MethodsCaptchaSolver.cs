@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Drawing;
 using Tesseract;
 using System.Diagnostics;
+using System.IO;
 
 namespace WebApi_NetCore.Shared
 {
@@ -16,7 +17,7 @@ namespace WebApi_NetCore.Shared
             {
                 b = MethodsImagenFilter.Closing(b);
                 string res = string.Empty;
-                string path = $@"{Environment.CurrentDirectory}\tessdata\";
+                string path = $@"{Environment.CurrentDirectory}/tessdata/";
                 //Debug.Print(path);
                 //path = "C:\\Users\\admin\\Desktop\\Captcha-Solver-master\\Captcha-Solver-master\\Captcha-Solver\\Captcha-Solver-Gui\\bin\\Debug\\tessdata\\";
                 using (var engine = new TesseractEngine(path, "eng"))
@@ -30,8 +31,10 @@ namespace WebApi_NetCore.Shared
                     engine.SetVariable("chop_enable", true);
 
                     Bitmap x = b.Clone(new Rectangle(0, 0, b.Width, b.Height), System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-
-                    using (var page = engine.Process(x, PageSegMode.SingleLine))
+                    //var bytes = ImageToByte2((Image)x);
+                    var tess = new BitmapToPixConverter();
+                    Pix y = tess.Convert(x);
+                    using (var page = engine.Process(y, PageSegMode.SingleLine))
                         res = page.GetText().Replace(" ", "").Trim();
 
                     
@@ -42,7 +45,15 @@ namespace WebApi_NetCore.Shared
             catch (Exception ex)
             {
                 //MessageBox.Show($"Erro: {ex.Message}");
-                return null;
+                return ex.ToString();
+            }
+        }
+        public static byte[] ImageToByte2(Image img)
+        {
+            using (var stream = new MemoryStream())
+            {
+                img.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg);
+                return stream.ToArray();
             }
         }
     }

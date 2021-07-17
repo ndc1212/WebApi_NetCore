@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>5cc69ef4-68e2-4aae-a83f-16c524b3ae0c</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,14 +20,8 @@
 	  
   </ItemGroup>
 
-  
   <ItemGroup>
-    <Reference Include="Tesseract">
-      <HintPath>lib\Tesseract.dll</HintPath>
-    </Reference>
-    <Reference Include="Tesseract.Drawing">
-      <HintPath>lib\Tesseract.Drawing.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\Tesseract\Tesseract.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
@@ -18,12 +19,15 @@ namespace WebApi_NetCore
             CreateHostBuilder(args).Build().Run();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                }).ConfigureServices(services =>
-                    services.AddHostedService<DerivedBackgroundPrinter>());
+        public static IWebHostBuilder CreateHostBuilder(string[] args)
+        {
+            return new WebHostBuilder()
+                 .UseKestrel(opt => opt.AddServerHeader = false)
+                 .UseContentRoot(Directory.GetCurrentDirectory())
+                 .UseIIS()
+                 .UseIISIntegration()
+                 .UseStartup<Startup>()
+                 .UseUrls("http://0.0.0.0:5555");
+        }
     }
 }

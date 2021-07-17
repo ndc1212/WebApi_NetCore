@@ -28,23 +28,23 @@ namespace WebApi_NetCore.Shared
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             Debug.Print("AAA");
-            //var ngaybatdau = _demoDbContext.GiaoDichChuyenTiens.OrderByDescending(o => o.GiaoDich_ThoiGian).Select(o => o.GiaoDich_ThoiGian).FirstOrDefault();
-            //var _callApi = new CallApi();
-            //var res = _callApi.B1("01652992622", "Cocaca@1", ngaybatdau);
-            //res = res.Where(o => o.TenDangNhap.Contains("nap")).ToList();
-            //foreach (var item in res)
-            //{
-            //    _demoDbContext.GiaoDichChuyenTiens.Add(new DB.Table.GiaoDichChuyenTien
-            //    {
-            //        GiaoDich_SoTien = item.SoTien,
-            //        GiaoDich_PhuongThuc = "CKNH",
-            //        GiaoDich_TaiKhoan = item.TaiKhoan,
-            //        GiaoDich_ThoiGian = Convert.ToDateTime(item.Ngay.Replace(item.Ngay.Split("-")[0] + "-" + item.Ngay.Split("-")[1], item.Ngay.Split("-")[1] + "-" + item.Ngay.Split("-")[0])),
-            //        TenDangNhap = item.TenDangNhap.Replace("nap", "").Trim(),
-            //        CreationTime = DateTime.Now
-            //    });
-            //    _demoDbContext.SaveChanges();
-            //}
+            var ngaybatdau = _demoDbContext.GiaoDichChuyenTiens.OrderByDescending(o => o.GiaoDich_ThoiGian).Select(o => o.GiaoDich_ThoiGian).FirstOrDefault();
+            var _callApi = new CallApi();
+            var res = _callApi.B1("01652992622", "Cocaca@1", ngaybatdau);
+            res = res.Where(o => o.TenDangNhap.Contains("nap")).ToList();
+            foreach (var item in res)
+            {
+                _demoDbContext.GiaoDichChuyenTiens.Add(new DB.Table.GiaoDichChuyenTien
+                {
+                    GiaoDich_SoTien = item.SoTien,
+                    GiaoDich_PhuongThuc = "CKNH",
+                    GiaoDich_TaiKhoan = item.TaiKhoan,
+                    GiaoDich_ThoiGian = Convert.ToDateTime(item.Ngay.Replace(item.Ngay.Split("-")[0] + "-" + item.Ngay.Split("-")[1], item.Ngay.Split("-")[1] + "-" + item.Ngay.Split("-")[0])),
+                    TenDangNhap = item.TenDangNhap.Replace("nap", "").Trim(),
+                    CreationTime = DateTime.Now
+                });
+                _demoDbContext.SaveChanges();
+            }
             await worker.DoWork(cancellationToken);
         }
 
@@ -73,26 +73,33 @@ namespace WebApi_NetCore.Shared
             while (!cancellationToken.IsCancellationRequested)
             {
                 Interlocked.Increment(ref number);
+                //var magd = demoDbContext.GiaoDichChuyenTiens.Where(o => o.GiaoDich_PhuongThuc == "ACB").Select(o => o.GiaoDich_Ma).ToList();
+                //var nd = demoDbContext.NguoiDungThongTins.Where(o => o.NguoiDung_Loai == 0).ToList();
+                //var ngaybatdau = demoDbContext.GiaoDichChuyenTiens.OrderByDescending(o => o.GiaoDich_ThoiGian).Select(o => o.GiaoDich_ThoiGian).FirstOrDefault();
+                //var _callApi = new CallApi();
+                //var res = _callApi.B1("01652992622", "Cocaca@1", ngaybatdau);
+                //Debug.Print(res.Count().ToString());
 
-                var ngaybatdau = demoDbContext.GiaoDichChuyenTiens.OrderByDescending(o => o.GiaoDich_ThoiGian).Select(o => o.GiaoDich_ThoiGian).FirstOrDefault();
-                var _callApi = new CallApi();
-                var res = _callApi.B1("01652992622", "Cocaca@1", ngaybatdau);
-                Debug.Print(res.Count().ToString());
-                res = res.Where(o => o.TenDangNhap.Contains("nap")).ToList();
-                foreach (var item in res)
-                {
-                    
-                    demoDbContext.GiaoDichChuyenTiens.Add(new DB.Table.GiaoDichChuyenTien
-                    {
-                        GiaoDich_SoTien = item.SoTien.Replace(".",","),
-                        GiaoDich_PhuongThuc = "CKNH",
-                        GiaoDich_TaiKhoan = item.TaiKhoan,
-                        GiaoDich_ThoiGian = Convert.ToDateTime(item.Ngay.Replace(item.Ngay.Split("-")[0] + "-" + item.Ngay.Split("-")[1], item.Ngay.Split("-")[1] + "-" + item.Ngay.Split("-")[0])),
-                        TenDangNhap = item.TenDangNhap.Replace("nap", "").Trim(),
-                        CreationTime = DateTime.Now
-                    });
-                    demoDbContext.SaveChanges();
-                }
+                //res = res.Where(o => o.TenDangNhap.ToLower().Contains("nap") && !magd.Contains(o.TaiKhoan)).ToList();
+                //foreach (var item in res)
+                //{
+                //    var ndtt = nd.Where(o => o.NguoiDung_MaTaiKhoan == item.TenDangNhap.Split(" ")[1].Trim()).FirstOrDefault();
+                //    var ngaystr = item.Ngay.Split("-")[1] + "/" + item.Ngay.Split("-")[0] + "/20" + item.Ngay.Split("-")[2];
+                //    var ngay = Convert.ToDateTime(ngaystr);
+                //    if (ndtt != null)
+                //    {
+                //        demoDbContext.GiaoDichChuyenTiens.Add(new DB.Table.GiaoDichChuyenTien
+                //        {
+                //            GiaoDich_SoTien = item.SoTien.Replace(".", ","),
+                //            GiaoDich_PhuongThuc = "ACB",
+                //            GiaoDich_Ma = item.TaiKhoan,
+                //            GiaoDich_ThoiGian = ngay,
+                //            TenDangNhap = ndtt.Username,
+                //            CreationTime = DateTime.Now
+                //        });
+                //        demoDbContext.SaveChanges();
+                //    }
+                //}
 
                 logger.LogInformation($"Worker printing number {number}");
                 await Task.Delay(30000);
